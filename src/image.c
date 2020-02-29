@@ -6,43 +6,61 @@
 /*   By: cotis <cotis@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/26 10:46:30 by cotis             #+#    #+#             */
-/*   Updated: 2020/02/29 08:21:40 by cotis            ###   ########.fr       */
+/*   Updated: 2020/02/29 09:27:49 by cotis            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "fdf.h"
 
-int kays(int kay, void *p)
+int kays(int key, data *a)
 {
-    (void)p;
-    if (kay == 53)
+    if (key == 53)
         exit(0);
-    return(kay);
+        if (key ==  126)
+        a->shift_y -= 10;
+    if (key == 125)
+        a-> shift_y += 10;
+    if (key == 123)
+        a-> shift_x -= 10;
+    if (key == 124)
+        a->shift_x += 10;
+    if (key == 43)
+        a->zoom -= 1;
+    if (key == 45)
+        a->zoom += 1;
+   
+   // mlx_clear_window(a->mlx_ptr, a->win_ptr); 
+    draw(a); 
+   //  mlx_destroy_image(a->mlx_ptr, a->img_ptr);
+    if (mlx_put_image_to_window(a->mlx_ptr, a->win_ptr, a->img_ptr, 0, 0) == NULL)
+       errors (-2);
+    return(key);
 }
+
+
 
 int     image(data *a)
 {
-    void        *mlx_ptr;
-    void        *win_ptr;
-    void        *img_ptr; 
     int         bpp; //  The number of bits per pixels. 32 because a pixel is coded on 4 char, those chars worth 8 bits each, which gives us 32.
     int         sl; // The size of a line times 4. 3200 because the width of one line of pixel is 800, times 4, because a pixel is coded on 4 chars
     int         end;
 
-    if ((mlx_ptr = mlx_init()) == NULL)
+    if ((a->mlx_ptr = mlx_init()) == NULL)
         errors(-2);
-    if ((win_ptr = mlx_new_window(mlx_ptr, 800, 600, "love")) == NULL)
+    if ((a->win_ptr = mlx_new_window(a->mlx_ptr, 800, 600, "love")) == NULL)
         errors (-2);
-    if ((img_ptr = mlx_new_image(mlx_ptr, 800, 600)) == NULL)
+    if ((a->img_ptr = mlx_new_image(a->mlx_ptr, 800, 600)) == NULL)
         errors (-2);
-    if ((a->str = (int *)mlx_get_data_addr(img_ptr, &bpp, &sl, &end)) == NULL)
+    if ((a->str = (int *)mlx_get_data_addr(a->img_ptr, &bpp, &sl, &end)) == NULL)
        errors (-2);
-    a->zoom = 10; 
-    draw(a);
-    if (mlx_put_image_to_window(mlx_ptr, win_ptr, img_ptr, 0, 0) == NULL)
+    a->zoom = 3; 
+    draw(a); 
+    mlx_hook(a->win_ptr, 3, 0, kays, a);
+    if (mlx_put_image_to_window(a->mlx_ptr, a->win_ptr, a->img_ptr, 0, 0) == NULL)
        errors (-2);
-    mlx_hook(win_ptr, 3, 0, kays, NULL);
-    mlx_loop(mlx_ptr);
+    
+   
+    mlx_loop(a->mlx_ptr);
     return (0);
 }
 
@@ -98,10 +116,10 @@ void algoritm(int x1, int y1, int x2, int y2, int *str, data *a)
    iso(&x1, &y1, z1);
    iso(&x2, &y2, z2);
     
-    // x1 += 150;
-    // y1 += 150;
-    // x2 += 150;
-    // y2 += 150;
+     x1 += a->shift_x;
+     y1 += a->shift_y;
+     x2 += a->shift_x;
+     y2 += a->shift_y;
     
     const int deltaX = abs(x2 - x1);
     const int deltaY = abs(y2 - y1);

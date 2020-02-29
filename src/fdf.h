@@ -13,12 +13,18 @@
 
 typedef struct      s_data
 {
+
+    void        *mlx_ptr;
+    void        *win_ptr;
+    void        *img_ptr; 
     int             **z_list;
     int             x_max;
     int             y_max;
     int             *str;
     int             zoom;
     int             color;
+    int             shift_x;
+    int             shift_y;
     int             i;
     int             j;
 }                   data;

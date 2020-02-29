@@ -6,7 +6,7 @@
 /*   By: cotis <cotis@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/17 15:34:59 by cotis             #+#    #+#             */
-/*   Updated: 2020/02/29 06:47:30 by cotis            ###   ########.fr       */
+/*   Updated: 2020/02/29 09:09:11 by cotis            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,6 +98,8 @@ int		main(int argc, char **argv)
 	if (argc != 2)
 		errors(-1);
 	map_read(argv[1], &a);
+	a.shift_x = 300;
+	a.shift_y = 300;
 	image(&a);	
 	return (0);
 }
