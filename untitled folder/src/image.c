@@ -6,21 +6,31 @@
 /*   By: cotis <cotis@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/26 10:46:30 by cotis             #+#    #+#             */
-/*   Updated: 2020/03/03 12:54:25 by cotis            ###   ########.fr       */
+/*   Updated: 2020/03/03 16:33:24 by cotis            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "fdf.h"
 
-
-
-
-int			keys(int key, data *a)
+int				keys(int key, data *a)
 {
 	int		bpp;
 	int		sl;
 	int		end;
 
+	if (key == 91)  // X
+		a->alpha += 0.2;
+	if (key == 84)  // X
+		a->alpha -= 0.2;
+	if (key == 88)    // Y
+		a->beta += 0.2;
+	if (key == 86)    // Y
+		a->beta -= 0.2;
+	if (key == 92)    // Z
+		a->gamma += 0.2;
+	if (key == 89)    // Z
+		a->gamma -= 0.2;
+	
 	if (key == 53)
 		exit(0);
 	if (key == 126)
@@ -37,14 +47,14 @@ int			keys(int key, data *a)
 		a->zoom += 0.5;
 	a->img_ptr = mlx_new_image(a->mlx_ptr, 1920, 1080);
 	if ((a->str = (int*)mlx_get_data_addr(a->img_ptr, &bpp, &sl, &end)) == NULL)
-		errors (-2);
+		errors(-2);
 	draw(a);
 	mlx_put_image_to_window(a->mlx_ptr, a->win_ptr, a->img_ptr, 0, 0);
 	mlx_destroy_image(a->mlx_ptr, a->img_ptr);
-	return(key);
+	return (key);
 }
 
-int			image(data *a)
+int				image(data *a)
 {
 	int		bpp;
 	int		sl;
@@ -53,23 +63,18 @@ int			image(data *a)
 	a->shift_x = 960;
 	a->shift_y = 540;
 	a->zoom = 1;
-	if ((a->mlx_ptr = mlx_init()) == NULL)
-		errors(-2);
-	if ((a->win_ptr = mlx_new_window(a->mlx_ptr, 1920, 1080, "Love")) == NULL)
-		errors (-2);
-	if ((a->img_ptr = mlx_new_image(a->mlx_ptr, 1920, 1080)) == NULL)
-		errors (-2);
-	if ((a->str = (int *)mlx_get_data_addr(a->img_ptr, &bpp, &sl, &end)) == NULL)
-		errors (-2);
+	a->mlx_ptr = mlx_init();
+	a->win_ptr = mlx_new_window(a->mlx_ptr, 1920, 1080, "Love");
+	a->img_ptr = mlx_new_image(a->mlx_ptr, 1920, 1080);
+	a->str = (int *)mlx_get_data_addr(a->img_ptr, &bpp, &sl, &end);
 	draw(a);
-	if (mlx_put_image_to_window(a->mlx_ptr, a->win_ptr, a->img_ptr, 0, 0) == NULL)
-		errors (-2);
-	mlx_hook(a->win_ptr, 3, 0, keys, a); 
+	mlx_put_image_to_window(a->mlx_ptr, a->win_ptr, a->img_ptr, 0, 0);
+	mlx_hook(a->win_ptr, 3, 0, keys, a);
 	mlx_loop(a->mlx_ptr);
 	return (0);
 }
 
-void		draw(data *a)
+void			draw(data *a)
 {
 	int		x;
 	int		y;
@@ -81,69 +86,134 @@ void		draw(data *a)
 		while (x < a->x_max)
 		{
 			if (x < a->x_max - 1)
+			{
 				algoritm(x, y, x + 1, y, a->str, a);
+			}
 			if (y < a->y_max - 1)
+			{
 				algoritm(x, y, x, y + 1, a->str, a);
+			}
 			x++;
 		}
 		y++;
 	}
 }
+void	rotate_x(int *y, int *z, double alpha)
+{
+	int previous_y;
 
-static void			iso(int *x, int *y, int z)
+	previous_y = *y;
+	*y = previous_y * cos(alpha) + *z * sin(alpha);
+	*z = -previous_y * sin(alpha) + *z * cos(alpha);
+}
+
+/*
+** Rotate coordinate by y axis
+*/
+
+void	rotate_y(int *x, int *z, double beta)
+{
+	int previous_x;
+
+	previous_x = *x;
+	*x = previous_x * cos(beta) + *z * sin(beta);
+	*z = -previous_x * sin(beta) + *z * cos(beta);
+}
+
+/*
+** Rotate coordinate by z axis
+*/
+
+ void	rotate_z(int *x, int *y, double gamma)
 {
 	int previous_x;
 	int previous_y;
 
 	previous_x = *x;
 	previous_y = *y;
+	*x = previous_x * cos(gamma) - previous_y * sin(gamma);
+	*y = previous_x * sin(gamma) + previous_y * cos(gamma);
+}
+
+
+static void			isometric(int *x, int *y, int z)
+{
+	int previous_x;
+	int previous_y;
+
+	
+	previous_x = *x;
+	previous_y = *y;
 	*x = (previous_x - previous_y) * cos(0.523599);
 	*y = -z + (previous_x + previous_y) * sin(0.523599);
 }
 
-
-void		algoritm(int x1, int y1, int x2, int y2, int *str, data *a)
+void				zoom(t_put *fdf, data *a)
 {
-    t_put   fdf;
+	fdf->z1 = a->z_list[(int)fdf->y1][(int)fdf->x1];
+	fdf->z2 = a->z_list[(int)fdf->y2][(int)fdf->x2];
+	fdf->x1 *= a->zoom;
+	fdf->y1 *= a->zoom;
+	fdf->x2 *= a->zoom;
+	fdf->y2 *= a->zoom;
+}
 
-	fdf.z1 = a->z_list[(int)y1][(int)x1];
-	fdf.z2 = a->z_list[(int)y2][(int)x2];
+void				color(t_put *fdf, data *a)
+{
+	a->color = (fdf->z1) ? 0xFF000 : 0xFFFFFF;
+}
 
-	x1 *= a->zoom;
-	y1 *= a->zoom;
-	x2 *= a->zoom;
-	y2 *= a->zoom;
-	
-	a->color = (fdf.z1) ?  0xFFFFFF : 0xFF0000;
+void				move(t_put *fdf, data *a)
+{
+	fdf->x1 += a->shift_x;
+	fdf->y1 += a->shift_y;
+	fdf->x2 += a->shift_x;
+	fdf->y2 += a->shift_y;
+}
 
-	iso(&x1, &y1, fdf.z1);
-	iso(&x2, &y2, fdf.z2);
-
-	x1 += a->shift_x;
-	y1 += a->shift_y;
-	x2 += a->shift_x;
-	y2 += a->shift_y;
-
-	fdf.deltaX = abs(x2 - x1);
-	fdf.deltaY = abs(y2 - y1);
-	fdf.signX = x1 < x2 ? 1 : -1;
-	fdf.signY = y1 < y2 ? 1 : -1;
-	fdf.error = fdf.deltaX - fdf.deltaY;
-
-	str[x2 + y2 * 1920] = a->color;
-	while(x1 != x2 || y1 != y2)
+void				brazenham(t_put *fdf, data *a, int *str)
+{
+	fdf->deltaX = abs(fdf->x2 - fdf->x1);
+	fdf->deltaY = abs(fdf->y2 - fdf->y1);
+	fdf->signX = fdf->x1 < fdf->x2 ? 1 : -1;
+	fdf->signY = fdf->y1 < fdf->y2 ? 1 : -1;
+	fdf->error = fdf->deltaX - fdf->deltaY;
+	str[fdf->x2 + fdf->y2 * 1920] = a->color;
+	while (fdf->x1 != fdf->x2 || fdf->y1 != fdf->y2)
 	{
-		str[x1 + y1 * 1920] = a->color;
-		fdf.error2 = fdf.error * 2;
-		if(fdf.error2 > -(fdf.deltaY))
+		str[fdf->x1 + fdf->y1 * 1920] = a->color;
+		fdf->error2 = fdf->error * 2;
+		if (fdf->error2 > -(fdf->deltaY))
 		{
-			fdf.error -= fdf.deltaY;
-			x1 += fdf.signX;
+			fdf->error -= fdf->deltaY;
+			fdf->x1 += fdf->signX;
 		}
-		if(fdf.error2 < fdf.deltaX)
+		if (fdf->error2 < fdf->deltaX)
 		{
-			fdf.error += fdf.deltaX;
-			y1 += fdf.signY;
+			fdf->error += fdf->deltaX;
+			fdf->y1 += fdf->signY;
 		}
 	}
+}
+
+void				algoritm(int x1, int y1, int x2, int y2, int *str, data *a)
+{
+	t_put		fdf;
+
+	fdf.x1 = x1;
+	fdf.x2 = x2;
+	fdf.y1 = y1;
+	fdf.y2 = y2;
+	zoom(&fdf, a);
+	color(&fdf, a);
+	isometric(&(fdf.x1), &(fdf.y1), fdf.z1);
+	isometric(&(fdf.x2), &(fdf.y2), fdf.z2);
+	rotate_x(&(fdf.y1), &(fdf.z1), a->alpha);
+	rotate_x(&(fdf.y2), &(fdf.z2), a->alpha);
+	rotate_y(&(fdf.x1), &(fdf.z1), a->beta);
+	rotate_y(&(fdf.x2), &(fdf.z2), a->beta);
+	rotate_z(&(fdf.x1), &(fdf.y1), a->gamma);
+	rotate_z(&(fdf.x2), &(fdf.y2), a->gamma);
+	move(&fdf, a);
+	brazenham(&fdf, a, str);
 }

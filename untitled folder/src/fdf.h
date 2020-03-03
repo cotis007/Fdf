@@ -25,18 +25,22 @@ typedef struct      s_put
 	int signY;
 	int error;
     int error2 ;
+    
 }                   t_put;
 
 typedef struct      s_data
 {
+    double alpha;
+    double beta;
+    double gamma;
     void        *mlx_ptr;
     void        *win_ptr;
     void        *img_ptr; 
-    int             **z_list;
+    int         **z_list;
     int             x_max;
     int             y_max;
     int             *str;
-    float             zoom;
+    float            zoom;
     int             color;
     int             shift_x;
     int             shift_y;
@@ -44,11 +48,11 @@ typedef struct      s_data
     int             j;
 }                   data;
 
-void        draw(data *a);
+void            draw(data *a);
 void	        validation(char *line);
 int             check_input(char *input);
 char            *mystrtok(char *str, const char *delim);
 void            errors(int c);
 int             image(data *a);
-void algoritm(int x1, int y1, int x2, int y2, int *str, data *a) ;
+void            algoritm(int x1, int y1, int x2, int y2, int *str, data *a) ;
 #endif
